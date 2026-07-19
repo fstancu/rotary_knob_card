@@ -46,24 +46,41 @@ class RotaryKnobCard extends HTMLElement {
   render(rotation, state, options, currentIndex) {
     if (!this.shadowRoot) return;
 
-    const knobRadius = 70; // jumatate din width/height al knob-outer (140px)
-    const labelRingRadius = knobRadius + 38; // cat de departe de centru sunt etichetele
+    const knobRadius = 70;
+    const labelRingRadius = knobRadius + 34;
+    const labelMaxWidth = 92; // latime maxima per eticheta, restul face wrap pe 2 linii
 
-    // Generam etichetele pozitionate pe cerc in jurul butonului.
-    // Unghiul 0 e sus (ca la ceas), la fel ca rotatia indicatorului.
     const labelsHtml = options
       .map((opt, i) => {
         const angleDeg = (i / options.length) * 360;
-        const angleRad = (angleDeg - 90) * (Math.PI / 180); // -90 ca sa porneasca de sus
+        const angleRad = (angleDeg - 90) * (Math.PI / 180);
         const x = labelRingRadius * Math.cos(angleRad);
         const y = labelRingRadius * Math.sin(angleRad);
         const isActive = i === currentIndex;
+
+        // cos > 0.3  -> eticheta e in dreapta -> aliniem text la stanga (creste spre dreapta)
+        // cos < -0.3 -> eticheta e in stanga  -> aliniem text la dreapta (creste spre stanga)
+        // altfel (sus/jos) -> centrat
+        const cosVal = Math.cos(angleRad);
+        let textAlign = "center";
+        let translateX = "-50%";
+        if (cosVal > 0.3) {
+          textAlign = "left";
+          translateX = "0%";
+        } else if (cosVal < -0.3) {
+          textAlign = "right";
+          translateX = "-100%";
+        }
 
         return `
           <div
             class="option-label ${isActive ? "active" : ""}"
             data-index="${i}"
-            style="transform: translate(${x}px, ${y}px) translate(-50%, -50%);"
+            style="
+              transform: translate(${x}px, ${y}px) translate(${translateX}, -50%);
+              text-align: ${textAlign};
+              max-width: ${labelMaxWidth}px;
+            "
           >${opt}</div>
         `;
       })
@@ -80,8 +97,8 @@ class RotaryKnobCard extends HTMLElement {
         }
         .knob-wrapper {
           position: relative;
-          width: 220px;
-          height: 220px;
+          width: 320px;
+          height: 260px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -99,6 +116,7 @@ class RotaryKnobCard extends HTMLElement {
           transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
           transform: rotate(${rotation}deg);
           cursor: pointer;
+          flex-shrink: 0;
         }
         .knob-indicator {
           position: absolute;
@@ -114,15 +132,16 @@ class RotaryKnobCard extends HTMLElement {
           position: absolute;
           top: 50%;
           left: 50%;
-          font-size: 0.68em;
+          font-size: 0.62em;
+          line-height: 1.25;
           color: var(--secondary-text-color);
-          opacity: 0.6;
+          opacity: 0.55;
           cursor: pointer;
-          white-space: nowrap;
           padding: 2px 5px;
           border-radius: 4px;
           transition: opacity 0.2s, color 0.2s, background 0.2s;
           user-select: none;
+          word-break: break-word;
         }
         .option-label:hover {
           opacity: 1;
@@ -134,10 +153,11 @@ class RotaryKnobCard extends HTMLElement {
           font-weight: 600;
         }
         .label {
-          margin-top: 8px;
+          margin-top: 4px;
           font-size: 1.4em;
           font-weight: 500;
           color: var(--primary-text-color);
+          text-align: center;
         }
         .sub-label {
           font-size: 1em;
@@ -159,14 +179,12 @@ class RotaryKnobCard extends HTMLElement {
       </ha-card>
     `;
 
-    // Click pe buton = trece la urmatoarea stare
     const knob = this.shadowRoot.querySelector(".knob-outer");
     knob.addEventListener("click", () => {
       const nextIndex = (currentIndex + 1) % options.length;
       this.selectOption(nextIndex);
     });
 
-    // Click pe orice eticheta = sari direct pe acea stare
     this.shadowRoot.querySelectorAll(".option-label").forEach((el) => {
       el.addEventListener("click", (e) => {
         e.stopPropagation();
