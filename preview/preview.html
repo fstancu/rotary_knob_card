@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<title>Rotary Knob Card - Preview</title>
+<style>
+  :root {
+    --primary-text-color: #e1e1e1;
+    --secondary-text-color: #9b9b9b;
+    --card-background-color: #1c1c1c;
+    --ha-card-border-radius: 12px;
+  }
+  body {
+    background: #111;
+    margin: 0;
+    padding: 40px;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  ha-card {
+    display: block;
+    background: var(--card-background-color);
+    border-radius: var(--ha-card-border-radius);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .panel {
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 6px;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+  <div>
+    <div class="panel">default config</div>
+    <rotary-knob-card id="card1"></rotary-knob-card>
+  </div>
+
+  <div>
+    <div class="panel">knob_size: 80, label_gap: 18, padding: 10</div>
+    <rotary-knob-card id="card2"></rotary-knob-card>
+  </div>
+
+  <div>
+    <div class="panel">show_labels: false, show_name: false</div>
+    <rotary-knob-card id="card3"></rotary-knob-card>
+  </div>
+
+<script src="rotary_knob_card.js"></script>
+<script>
+  function mockHass(entityState, options) {
+    return {
+      states: {
+        'input_select.test': {
+          state: entityState,
+          attributes: { options }
+        }
+      },
+      callService: async (domain, service, data) => {
+        console.log('callService', domain, service, data);
+        const c = document.querySelectorAll('rotary-knob-card');
+        c.forEach(card => {
+          if (card._hass && card._hass.states[data.entity_id]) {
+            card.hass = {
+              ...card._hass,
+              states: {
+                ...card._hass.states,
+                [data.entity_id]: { ...card._hass.states[data.entity_id], state: data.option }
+              }
+            };
+          }
+        });
+      }
+    };
+  }
+
+  const opts = ['OPTION_A', 'OPTION_B', 'OPTION_C', 'OPTION_D'];
+
+  const card1 = document.getElementById('card1');
+  card1.setConfig({ entity: 'input_select.test', name: 'Test Knob' });
+  card1.hass = mockHass('OPTION_A', opts);
+
+  const card2 = document.getElementById('card2');
+  card2.setConfig({ entity: 'input_select.test', name: 'Compact', knob_size: 80, label_gap: 18, padding: 10 });
+  card2.hass = mockHass('OPTION_B', opts);
+
+  const card3 = document.getElementById('card3');
+  card3.setConfig({ entity: 'input_select.test', name: 'Minimal', show_labels: false, show_name: false });
+  card3.hass = mockHass('OPTION_C', opts);
+</script>
+</body>
+</html>
