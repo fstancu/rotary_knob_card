@@ -5,7 +5,6 @@ class RotaryKnobCard extends HTMLElement {
     }
     this._config = config;
 
-    // Creăm shadow root o singură dată
     if (!this.shadowRoot) {
       this.attachShadow({ mode: "open" });
     }
@@ -30,10 +29,10 @@ class RotaryKnobCard extends HTMLElement {
     const currentIndex = options.indexOf(currentState);
     const rotation = options.length ? (currentIndex / options.length) * 360 : 0;
 
-    this.render(rotation, currentState);
+    this.render(rotation, currentState, options, currentIndex);
   }
 
-  async rotateKnob(newIndex) {
+  async selectOption(newIndex) {
     const entityId = this._config.entity;
     const options = this._hass.states[entityId].attributes.options;
     const newValue = options[newIndex];
@@ -44,8 +43,31 @@ class RotaryKnobCard extends HTMLElement {
     });
   }
 
-  render(rotation, state) {
+  render(rotation, state, options, currentIndex) {
     if (!this.shadowRoot) return;
+
+    const knobRadius = 70; // jumatate din width/height al knob-outer (140px)
+    const labelRingRadius = knobRadius + 38; // cat de departe de centru sunt etichetele
+
+    // Generam etichetele pozitionate pe cerc in jurul butonului.
+    // Unghiul 0 e sus (ca la ceas), la fel ca rotatia indicatorului.
+    const labelsHtml = options
+      .map((opt, i) => {
+        const angleDeg = (i / options.length) * 360;
+        const angleRad = (angleDeg - 90) * (Math.PI / 180); // -90 ca sa porneasca de sus
+        const x = labelRingRadius * Math.cos(angleRad);
+        const y = labelRingRadius * Math.sin(angleRad);
+        const isActive = i === currentIndex;
+
+        return `
+          <div
+            class="option-label ${isActive ? "active" : ""}"
+            data-index="${i}"
+            style="transform: translate(${x}px, ${y}px) translate(-50%, -50%);"
+          >${opt}</div>
+        `;
+      })
+      .join("");
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -55,7 +77,14 @@ class RotaryKnobCard extends HTMLElement {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          cursor: pointer;
+        }
+        .knob-wrapper {
+          position: relative;
+          width: 220px;
+          height: 220px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .knob-outer {
           width: 140px;
@@ -69,6 +98,7 @@ class RotaryKnobCard extends HTMLElement {
           position: relative;
           transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
           transform: rotate(${rotation}deg);
+          cursor: pointer;
         }
         .knob-indicator {
           position: absolute;
@@ -80,8 +110,31 @@ class RotaryKnobCard extends HTMLElement {
           border-radius: 4px;
           box-shadow: 0 0 8px #03A9F4;
         }
+        .option-label {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          font-size: 0.68em;
+          color: var(--secondary-text-color);
+          opacity: 0.6;
+          cursor: pointer;
+          white-space: nowrap;
+          padding: 2px 5px;
+          border-radius: 4px;
+          transition: opacity 0.2s, color 0.2s, background 0.2s;
+          user-select: none;
+        }
+        .option-label:hover {
+          opacity: 1;
+          background: rgba(3, 169, 244, 0.15);
+        }
+        .option-label.active {
+          opacity: 1;
+          color: #03A9F4;
+          font-weight: 600;
+        }
         .label {
-          margin-top: 20px;
+          margin-top: 8px;
           font-size: 1.4em;
           font-weight: 500;
           color: var(--primary-text-color);
@@ -94,8 +147,11 @@ class RotaryKnobCard extends HTMLElement {
       </style>
       <ha-card>
         <div class="card-container">
-          <div class="knob-outer">
-            <div class="knob-indicator"></div>
+          <div class="knob-wrapper">
+            <div class="knob-outer">
+              <div class="knob-indicator"></div>
+            </div>
+            ${labelsHtml}
           </div>
           <div class="label">${state}</div>
           <div class="sub-label">${this._config.name || "Rotary Control"}</div>
@@ -103,31 +159,33 @@ class RotaryKnobCard extends HTMLElement {
       </ha-card>
     `;
 
-    // Legăm evenimentul manual, pentru că innerHTML brut nu suportă @click
-    const container = this.shadowRoot.querySelector(".card-container");
-    container.addEventListener("click", () => this.handleInteraction());
-  }
+    // Click pe buton = trece la urmatoarea stare
+    const knob = this.shadowRoot.querySelector(".knob-outer");
+    knob.addEventListener("click", () => {
+      const nextIndex = (currentIndex + 1) % options.length;
+      this.selectOption(nextIndex);
+    });
 
-  handleInteraction() {
-    const entityId = this._config.entity;
-    const options = this._hass.states[entityId].attributes.options;
-    const currentState = this._hass.states[entityId].state;
-    const currentIndex = options.indexOf(currentState);
-    const nextIndex = (currentIndex + 1) % options.length;
-    this.rotateKnob(nextIndex);
+    // Click pe orice eticheta = sari direct pe acea stare
+    this.shadowRoot.querySelectorAll(".option-label").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = parseInt(el.getAttribute("data-index"), 10);
+        this.selectOption(idx);
+      });
+    });
   }
 
   getCardSize() {
-    return 3;
+    return 4;
   }
 }
 
 customElements.define("rotary-knob-card", RotaryKnobCard);
 
-// Necesar ca sa apara in "Add Card" -> lista de carduri custom
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: "rotary-knob-card",
   name: "Rotary Knob Card",
-  description: "Card rotativ pentru input_select",
+  description: "Rotary knob card for input_select entities",
 });
