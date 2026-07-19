@@ -1,0 +1,9 @@
+{
+  "domain": "rotary_knob_card",
+  "name": "Rotary Knob Card",
+  "documentation": "https://github.com/fstancu/rotary_knob_card",
+  "dependencies": [],
+  "codeowners": ["- fstancu"],
+  "version": "1.0.0",
+  "iot_class": "config"
+}
