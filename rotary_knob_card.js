@@ -46,11 +46,23 @@ class RotaryKnobCard extends HTMLElement {
   render(rotation, state, options, currentIndex) {
     if (!this.shadowRoot) return;
 
-    const knobRadius = 70;
-    const labelRingRadius = knobRadius + 34;
-    const labelMaxWidth = 92; // latime maxima per eticheta, restul face wrap pe 2 linii
+    // knob_size = diametrul knob-ului in px; restul se scaleaza proportional din el
+    const knobSize = this._config.knob_size || 140;
+    const knobRadius = knobSize / 2;
+    const labelGap = this._config.label_gap ?? 34; // distanta intre marginea knob-ului si inelul de etichete
+    const labelRingRadius = knobRadius + labelGap;
+    const labelMaxWidth = this._config.label_max_width || 92;
+    const showLabels = this._config.show_labels !== false;
+    const showState = this._config.show_state !== false;
+    const showName = this._config.show_name !== false;
+    const padding = this._config.padding ?? 24;
 
-    const labelsHtml = options
+    // wrapper-ul trebuie sa incapa knob-ul + inelul de etichete (doar daca etichetele sunt vizibile)
+    const wrapperExtent = showLabels ? (labelRingRadius + labelMaxWidth) * 2 : knobSize;
+    const wrapperWidth = showLabels ? wrapperExtent : knobSize;
+    const wrapperHeight = showLabels ? Math.max(knobSize, labelRingRadius * 2 + 40) : knobSize;
+
+    const labelsHtml = !showLabels ? "" : options
       .map((opt, i) => {
         const angleDeg = (i / options.length) * 360;
         const angleRad = (angleDeg - 90) * (Math.PI / 180);
@@ -89,7 +101,7 @@ class RotaryKnobCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>
         .card-container {
-          padding: 24px;
+          padding: ${padding}px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -97,15 +109,15 @@ class RotaryKnobCard extends HTMLElement {
         }
         .knob-wrapper {
           position: relative;
-          width: 320px;
-          height: 260px;
+          width: ${wrapperWidth}px;
+          height: ${wrapperHeight}px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
         .knob-outer {
-          width: 140px;
-          height: 140px;
+          width: ${knobSize}px;
+          height: ${knobSize}px;
           border-radius: 50%;
           background: radial-gradient(circle, #444 0%, #111 100%);
           box-shadow:
@@ -120,10 +132,10 @@ class RotaryKnobCard extends HTMLElement {
         }
         .knob-indicator {
           position: absolute;
-          top: 10px;
-          left: 66px;
+          top: ${knobSize * 0.0714}px;
+          left: ${knobSize / 2 - 4}px;
           width: 8px;
-          height: 20px;
+          height: ${knobSize * 0.143}px;
           background: #03A9F4;
           border-radius: 4px;
           box-shadow: 0 0 8px #03A9F4;
@@ -173,8 +185,8 @@ class RotaryKnobCard extends HTMLElement {
             </div>
             ${labelsHtml}
           </div>
-          <div class="label">${state}</div>
-          <div class="sub-label">${this._config.name || "Rotary Control"}</div>
+          ${showState ? `<div class="label">${state}</div>` : ""}
+          ${showName ? `<div class="sub-label">${this._config.name || "Rotary Control"}</div>` : ""}
         </div>
       </ha-card>
     `;
@@ -195,7 +207,11 @@ class RotaryKnobCard extends HTMLElement {
   }
 
   getCardSize() {
-    return 4;
+    const knobSize = this._config?.knob_size || 140;
+    const showLabels = this._config?.show_labels !== false;
+    const padding = this._config?.padding ?? 24;
+    const height = (showLabels ? Math.max(knobSize, (knobSize / 2 + (this._config?.label_gap ?? 34)) * 2 + 40) : knobSize) + padding * 2 + 60;
+    return Math.max(1, Math.round(height / 50));
   }
 }
 
