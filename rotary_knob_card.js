@@ -1,6 +1,14 @@
-class RotaryKnobCard extends Polymer.Element {
-  set a11yConfig(config) {
+class RotaryKnobCard extends HTMLElement {
+  setConfig(config) {
+    if (!config.entity) {
+      throw new Error("You must define an entity (input_select)");
+    }
     this._config = config;
+
+    // Creăm shadow root o singură dată
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: "open" });
+    }
   }
 
   set hass(hass) {
@@ -20,9 +28,9 @@ class RotaryKnobCard extends Polymer.Element {
     const options = stateObj.attributes.options || [];
     const currentState = stateObj.state;
     const currentIndex = options.indexOf(currentState);
-    const rotation = (currentIndex / options.length) * 360;
+    const rotation = options.length ? (currentIndex / options.length) * 360 : 0;
 
-    this.render(rotation, currentState, options);
+    this.render(rotation, currentState);
   }
 
   async rotateKnob(newIndex) {
@@ -36,7 +44,7 @@ class RotaryKnobCard extends Polymer.Element {
     });
   }
 
-  render(rotation, state, options) {
+  render(rotation, state) {
     if (!this.shadowRoot) return;
 
     this.shadowRoot.innerHTML = `
@@ -54,7 +62,7 @@ class RotaryKnobCard extends Polymer.Element {
           height: 140px;
           border-radius: 50%;
           background: radial-gradient(circle, #444 0%, #111 100%);
-          box-shadow: 
+          box-shadow:
             inset 2px 2px 5px rgba(255,255,255,0.1),
             5px 5px 15px rgba(0,0,0,0.5),
             -2px -2px 10px rgba(255,255,255,0.05);
@@ -85,31 +93,28 @@ class RotaryKnobCard extends Polymer.Element {
         }
       </style>
       <ha-card>
-        <div class="card-container" @click="${this.handleInteraction}">
+        <div class="card-container">
           <div class="knob-outer">
             <div class="knob-indicator"></div>
           </div>
           <div class="label">${state}</div>
-          <div class="sub-label">${this._config.name || 'Rotary Control'}</div>
+          <div class="sub-label">${this._config.name || "Rotary Control"}</div>
         </div>
       </ha-card>
     `;
+
+    // Legăm evenimentul manual, pentru că innerHTML brut nu suportă @click
+    const container = this.shadowRoot.querySelector(".card-container");
+    container.addEventListener("click", () => this.handleInteraction());
   }
 
-  handleInteraction(e) {
+  handleInteraction() {
     const entityId = this._config.entity;
     const options = this._hass.states[entityId].attributes.options;
     const currentState = this._hass.states[entityId].state;
-    let currentIndex = options.indexOf(currentState);
-    let nextIndex = (currentIndex + 1) % options.length;
+    const currentIndex = options.indexOf(currentState);
+    const nextIndex = (currentIndex + 1) % options.length;
     this.rotateKnob(nextIndex);
-  }
-
-  setConfig(config) {
-    if (!config.entity) {
-      throw new Error("You must define an entity (input_select)");
-    }
-    this.setA11yConfig(config);
   }
 
   getCardSize() {
@@ -118,3 +123,11 @@ class RotaryKnobCard extends Polymer.Element {
 }
 
 customElements.define("rotary-knob-card", RotaryKnobCard);
+
+// Necesar ca sa apara in "Add Card" -> lista de carduri custom
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: "rotary-knob-card",
+  name: "Rotary Knob Card",
+  description: "Card rotativ pentru input_select",
+});
