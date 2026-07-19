@@ -7,6 +7,8 @@ A beautiful, tactile rotary knob dashboard card that controls an `input_select` 
 - **Smooth Animation**: Visual rotation matches the current state of the entity.
 - **Neumorphic Design**: Modern dark-themed aesthetic that fits perfectly in Home Assistant.
 
+![Rotary Knob Card](screenshot.png)
+
 ## Installation via HACS
 
 1. Open **HACS** in your Home Assistant instance.
