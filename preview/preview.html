@@ -55,6 +55,16 @@
     <rotary-knob-card id="card4"></rotary-knob-card>
   </div>
 
+  <div>
+    <div class="panel">custom font sizes + colors</div>
+    <rotary-knob-card id="card5"></rotary-knob-card>
+  </div>
+
+  <div>
+    <div class="panel">knob_color: "#5a3d2b"</div>
+    <rotary-knob-card id="card6"></rotary-knob-card>
+  </div>
+
 <script src="../rotary_knob_card.js"></script>
 <script>
   function mockHass(entityState, options) {
@@ -104,6 +114,26 @@
     labels: ['Off', 'Eco', 'Comfort', 'Boost']
   });
   card4.hass = mockHass('OPTION_D', opts);
+
+  const card5 = document.getElementById('card5');
+  card5.setConfig({
+    entity: 'input_select.test',
+    name: 'Readable styling',
+    label_font_size: 15,
+    state_font_size: 24,
+    name_font_size: 18,
+    text_color: '#f5f5f5',
+    accent_color: '#ffb347'
+  });
+  card5.hass = mockHass('OPTION_A', opts);
+
+  const card6 = document.getElementById('card6');
+  card6.setConfig({
+    entity: 'input_select.test',
+    name: 'Different knob color',
+    knob_color: '#5a3d2b'
+  });
+  card6.hass = mockHass('OPTION_B', opts);
 </script>
 </body>
 </html>

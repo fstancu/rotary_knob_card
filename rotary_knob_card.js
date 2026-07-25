@@ -1,3 +1,33 @@
+function colorToRgba(color, alpha = 1) {
+  if (!color) {
+    return `rgba(3, 169, 244, ${alpha})`;
+  }
+
+  const rgbMatch = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\)$/i);
+  if (rgbMatch) {
+    const [, r, g, b, a] = rgbMatch;
+    return `rgba(${r}, ${g}, ${b}, ${a ?? alpha})`;
+  }
+
+  const hex = color.replace("#", "");
+  if (/^[0-9a-f]{3}$/i.test(hex)) {
+    const expanded = hex.split("").map((ch) => ch + ch).join("");
+    const r = parseInt(expanded.slice(0, 2), 16);
+    const g = parseInt(expanded.slice(2, 4), 16);
+    const b = parseInt(expanded.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  if (/^[0-9a-f]{6}$/i.test(hex)) {
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  return color;
+}
+
 class RotaryKnobCard extends HTMLElement {
   setConfig(config) {
     if (!config.entity) {
@@ -63,6 +93,12 @@ class RotaryKnobCard extends HTMLElement {
     const showState = this._config.show_state !== false;
     const showName = this._config.show_name !== false;
     const padding = this._config.padding ?? 24;
+    const labelFontSize = this._config.label_font_size ?? 12;
+    const stateFontSize = this._config.state_font_size ?? 22;
+    const nameFontSize = this._config.name_font_size ?? 16;
+    const textColor = this._config.text_color || "var(--primary-text-color)";
+    const accentColor = this._config.accent_color || "#03A9F4";
+    const knobColor = this._config.knob_color || "#444";
 
     // wrapper-ul trebuie sa incapa knob-ul + inelul de etichete (doar daca etichetele sunt vizibile)
     const wrapperExtent = showLabels ? (labelRingRadius + labelMaxWidth) * 2 : knobSize;
@@ -126,7 +162,7 @@ class RotaryKnobCard extends HTMLElement {
           width: ${knobSize}px;
           height: ${knobSize}px;
           border-radius: 50%;
-          background: radial-gradient(circle, #444 0%, #111 100%);
+          background: radial-gradient(circle, ${knobColor} 0%, #111 100%);
           box-shadow:
             inset 2px 2px 5px rgba(255,255,255,0.1),
             5px 5px 15px rgba(0,0,0,0.5),
@@ -143,18 +179,18 @@ class RotaryKnobCard extends HTMLElement {
           left: ${knobSize / 2 - 4}px;
           width: 8px;
           height: ${knobSize * 0.143}px;
-          background: #03A9F4;
+          background: ${accentColor};
           border-radius: 4px;
-          box-shadow: 0 0 8px #03A9F4;
+          box-shadow: 0 0 8px ${accentColor};
         }
         .option-label {
           position: absolute;
           top: 50%;
           left: 50%;
-          font-size: 0.62em;
+          font-size: ${labelFontSize}px;
           line-height: 1.25;
-          color: var(--secondary-text-color);
-          opacity: 0.55;
+          color: ${textColor};
+          opacity: 0.8;
           cursor: pointer;
           padding: 2px 5px;
           border-radius: 4px;
@@ -164,24 +200,24 @@ class RotaryKnobCard extends HTMLElement {
         }
         .option-label:hover {
           opacity: 1;
-          background: rgba(3, 169, 244, 0.15);
+          background: ${colorToRgba(accentColor, 0.15)};
         }
         .option-label.active {
           opacity: 1;
-          color: #03A9F4;
+          color: ${accentColor};
           font-weight: 600;
         }
         .label {
           margin-top: 4px;
-          font-size: 1.4em;
+          font-size: ${stateFontSize}px;
           font-weight: 500;
-          color: var(--primary-text-color);
+          color: ${textColor};
           text-align: center;
         }
         .sub-label {
-          font-size: 1em;
-          color: var(--secondary-text-color);
-          opacity: 0.7;
+          font-size: ${nameFontSize}px;
+          color: ${textColor};
+          opacity: 0.8;
         }
       </style>
       <ha-card>

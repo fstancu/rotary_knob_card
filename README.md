@@ -37,6 +37,12 @@ name: "<My Rotary Knob>"
 | `label_gap`        | number  | `34`    | Distance in px between the knob's edge and the ring of option labels.       |
 | `label_max_width` | number  | `92`    | Max width in px per option label before it wraps to a second line.          |
 | `padding`          | number  | `24`    | Padding in px around the whole card content.                                |
+| `label_font_size`  | number  | `12`    | Font size in px for the labels around the knob.                            |
+| `state_font_size`  | number  | `22`    | Font size in px for the current state text.                                 |
+| `name_font_size`   | number  | `16`    | Font size in px for the subtitle name.                                      |
+| `text_color`       | string  | `var(--primary-text-color)` | Text color for labels, state and name. Accepts hex, rgb or CSS color values. |
+| `accent_color`     | string  | `#03A9F4` | Accent color used for the knob indicator, active labels and hover states. |
+| `knob_color`       | string  | `#444`    | Background color of the knob body. Accepts hex, rgb or CSS color values. |
 | `show_labels`     | boolean | `true`  | Show/hide the ring of option labels around the knob.                        |
 | `show_state`       | boolean | `true`  | Show/hide the large current-state text below the knob.                     |
 | `show_name`        | boolean | `true`  | Show/hide the `name` subtitle below the state text.                        |
@@ -75,4 +81,18 @@ labels:
   - "Off"
   - "Eco"
   - "Comfort"
+```
+
+Custom readability styling example:
+
+```yaml
+type: custom:rotary-knob-card
+entity: input_select.heating_state
+name: "Heating mode"
+label_font_size: 15
+state_font_size: 24
+name_font_size: 18
+text_color: "#f5f5f5"
+accent_color: "#ffb347"
+knob_color: "#5a3d2b"
 ```
