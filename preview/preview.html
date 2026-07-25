@@ -50,7 +50,12 @@
     <rotary-knob-card id="card3"></rotary-knob-card>
   </div>
 
-<script src="rotary_knob_card.js"></script>
+  <div>
+    <div class="panel">labels: ["Off", "Eco", "Comfort", "Boost"]</div>
+    <rotary-knob-card id="card4"></rotary-knob-card>
+  </div>
+
+<script src="../rotary_knob_card.js"></script>
 <script>
   function mockHass(entityState, options) {
     return {
@@ -91,6 +96,14 @@
   const card3 = document.getElementById('card3');
   card3.setConfig({ entity: 'input_select.test', name: 'Minimal', show_labels: false, show_name: false });
   card3.hass = mockHass('OPTION_C', opts);
+
+  const card4 = document.getElementById('card4');
+  card4.setConfig({
+    entity: 'input_select.test',
+    name: 'Custom labels',
+    labels: ['Off', 'Eco', 'Comfort', 'Boost']
+  });
+  card4.hass = mockHass('OPTION_D', opts);
 </script>
 </body>
 </html>

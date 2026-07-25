@@ -28,8 +28,15 @@ class RotaryKnobCard extends HTMLElement {
     const currentState = stateObj.state;
     const currentIndex = options.indexOf(currentState);
     const rotation = options.length ? (currentIndex / options.length) * 360 : 0;
+    const configuredLabels = Array.isArray(this._config.labels) ? this._config.labels : [];
+    const displayLabels = options.map((opt, i) => {
+      return configuredLabels[i] !== undefined ? configuredLabels[i] : opt;
+    });
+    const displayState = currentIndex >= 0 && configuredLabels[currentIndex] !== undefined
+      ? configuredLabels[currentIndex]
+      : currentState;
 
-    this.render(rotation, currentState, options, currentIndex);
+    this.render(rotation, currentState, options, currentIndex, displayLabels, displayState);
   }
 
   async selectOption(newIndex) {
@@ -43,7 +50,7 @@ class RotaryKnobCard extends HTMLElement {
     });
   }
 
-  render(rotation, state, options, currentIndex) {
+  render(rotation, state, options, currentIndex, displayLabels, displayState) {
     if (!this.shadowRoot) return;
 
     // knob_size = diametrul knob-ului in px; restul se scaleaza proportional din el
@@ -62,8 +69,8 @@ class RotaryKnobCard extends HTMLElement {
     const wrapperWidth = showLabels ? wrapperExtent : knobSize;
     const wrapperHeight = showLabels ? Math.max(knobSize, labelRingRadius * 2 + 40) : knobSize;
 
-    const labelsHtml = !showLabels ? "" : options
-      .map((opt, i) => {
+    const labelsHtml = !showLabels ? "" : displayLabels
+      .map((label, i) => {
         const angleDeg = (i / options.length) * 360;
         const angleRad = (angleDeg - 90) * (Math.PI / 180);
         const x = labelRingRadius * Math.cos(angleRad);
@@ -93,7 +100,7 @@ class RotaryKnobCard extends HTMLElement {
               text-align: ${textAlign};
               max-width: ${labelMaxWidth}px;
             "
-          >${opt}</div>
+          >${label}</div>
         `;
       })
       .join("");
@@ -185,7 +192,7 @@ class RotaryKnobCard extends HTMLElement {
             </div>
             ${labelsHtml}
           </div>
-          ${showState ? `<div class="label">${state}</div>` : ""}
+          ${showState ? `<div class="label">${displayState || state}</div>` : ""}
           ${showName ? `<div class="sub-label">${this._config.name || "Rotary Control"}</div>` : ""}
         </div>
       </ha-card>

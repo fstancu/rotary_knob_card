@@ -40,6 +40,7 @@ name: "<My Rotary Knob>"
 | `show_labels`     | boolean | `true`  | Show/hide the ring of option labels around the knob.                        |
 | `show_state`       | boolean | `true`  | Show/hide the large current-state text below the knob.                     |
 | `show_name`        | boolean | `true`  | Show/hide the `name` subtitle below the state text.                        |
+| `labels`          | list    | —       | Custom display labels for the entity options. Mapped 1:1 in order to the `input_select` states. |
 
 ### Examples
 
@@ -62,4 +63,16 @@ entity: input_select.heating_state
 show_labels: false
 show_state: false
 show_name: false
+```
+
+Custom labels example:
+
+```yaml
+type: custom:rotary-knob-card
+entity: input_select.heating_state
+name: "Heating mode"
+labels:
+  - "Off"
+  - "Eco"
+  - "Comfort"
 ```
