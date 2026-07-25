@@ -43,6 +43,8 @@ name: "<My Rotary Knob>"
 | `text_color`       | string  | `var(--primary-text-color)` | Text color for labels, state and name. Accepts hex, rgb or CSS color values. |
 | `accent_color`     | string  | `#03A9F4` | Accent color used for the knob indicator, active labels and hover states. |
 | `knob_color`       | string  | `#444`    | Background color of the knob body. Accepts hex, rgb or CSS color values. |
+| `show_position_markers` | boolean | `true` | Show/hide the accent-colored markers around the knob that indicate the possible positions. |
+| `marker_distance`  | number  | `18`     | Distance in px between the knob edge and the position markers.              |
 | `show_labels`     | boolean | `true`  | Show/hide the ring of option labels around the knob.                        |
 | `show_state`       | boolean | `true`  | Show/hide the large current-state text below the knob.                     |
 | `show_name`        | boolean | `true`  | Show/hide the `name` subtitle below the state text.                        |
@@ -95,4 +97,6 @@ name_font_size: 18
 text_color: "#f5f5f5"
 accent_color: "#ffb347"
 knob_color: "#5a3d2b"
+show_position_markers: true
+marker_distance: 20
 ```

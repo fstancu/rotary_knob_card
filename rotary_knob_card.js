@@ -90,6 +90,7 @@ class RotaryKnobCard extends HTMLElement {
     const labelRingRadius = knobRadius + labelGap;
     const labelMaxWidth = this._config.label_max_width || 92;
     const showLabels = this._config.show_labels !== false;
+    const showPositionMarkers = this._config.show_position_markers !== false;
     const showState = this._config.show_state !== false;
     const showName = this._config.show_name !== false;
     const padding = this._config.padding ?? 24;
@@ -141,6 +142,24 @@ class RotaryKnobCard extends HTMLElement {
       })
       .join("");
 
+    const markersHtml = !showLabels || !showPositionMarkers ? "" : options
+      .map((_, i) => {
+        const angleDeg = (i / options.length) * 360;
+        const angleRad = (angleDeg - 90) * (Math.PI / 180);
+        const markerRadius = knobRadius + (this._config.marker_distance ?? 18);
+        const x = markerRadius * Math.cos(angleRad);
+        const y = markerRadius * Math.sin(angleRad);
+        const isActive = i === currentIndex;
+
+        return `
+          <div
+            class="position-marker ${isActive ? "active" : ""}"
+            style="transform: translate(${x}px, ${y}px) translate(-50%, -50%);"
+          ></div>
+        `;
+      })
+      .join("");
+
     this.shadowRoot.innerHTML = `
       <style>
         .card-container {
@@ -182,6 +201,23 @@ class RotaryKnobCard extends HTMLElement {
           background: ${accentColor};
           border-radius: 4px;
           box-shadow: 0 0 8px ${accentColor};
+        }
+        .position-marker {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: ${accentColor};
+          opacity: 0.7;
+          box-shadow: 0 0 4px ${accentColor};
+          pointer-events: none;
+        }
+        .position-marker.active {
+          width: 9px;
+          height: 9px;
+          opacity: 1;
         }
         .option-label {
           position: absolute;
@@ -226,6 +262,7 @@ class RotaryKnobCard extends HTMLElement {
             <div class="knob-outer">
               <div class="knob-indicator"></div>
             </div>
+            ${markersHtml}
             ${labelsHtml}
           </div>
           ${showState ? `<div class="label">${displayState || state}</div>` : ""}
